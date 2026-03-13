@@ -1,0 +1,47 @@
+---
+globs: **/*Repository.java
+alwaysApply: false
+---
+# Repository Layer
+
+## Responsibility
+
+Repositories are the data access layer: CRUD and queries for one aggregate/entity. No business logic; only persistence and retrieval.
+
+## Structure
+
+- Extend `JpaRepository<Entity, Id>` (or `CrudRepository`) for standard CRUD.
+- One repository per entity/aggregate root (e.g. `ItemRepository` for `Item`).
+- Place in `repository` package; methods return entities, `Optional<Entity>`, or collections (e.g. `List<Item>`).
+- Use constructor injection only if you add custom implementation beans; otherwise no explicit `@Autowired` needed on the interface.
+
+## Query Methods
+
+- Prefer **derived query methods** (Spring Data parses method name): `findByStatus`, `findByUserIdOrderByCreatedAtDesc`, `existsByEmail`.
+- Use `@Query` for JPQL or native when naming is unclear or for complex conditions; prefer JPQL over native for portability.
+- Return `Optional<T>` for single-result methods that may be absent; return `List`/`Page`/`Slice` for multiple results.
+- Use `Pageable` for pagination; return `Page<T>` when you need total count, `Slice<T>` when you don’t.
+
+```java
+// ✅ GOOD
+public interface ItemRepository extends JpaRepository<Item, Long> {
+    List<Item> findByStatusOrderByCreatedAtDesc(ItemStatus status, Pageable pageable);
+    Optional<Item> findByIdAndUserId(Long id, Long userId);
+    boolean existsByName(String name);
+
+    @Query("SELECT i FROM Item i WHERE i.status = :status AND i.user.id = :userId")
+    List<Item> findByStatusAndUser(@Param("status") ItemStatus status, @Param("userId") Long userId);
+}
+```
+
+## Naming
+
+- `findBy...`, `getBy...` (single), `existsBy...`, `countBy...`, `deleteBy...`.
+- Use `OrderBy...Asc/Desc` for sort; for dynamic sort use `Pageable` in the method signature.
+- Keep method names readable; if they get long or complex, use `@Query` with a clear JPQL statement.
+
+## Don’t
+
+- Put business logic or validation in repositories (belongs in service).
+- Expose repository types or entities directly from controllers; map in service to DTOs.
+- Use `SELECT *` in JPQL; select only needed fields or the entity when you need the full aggregate.

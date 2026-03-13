@@ -1,0 +1,55 @@
+---
+globs: **/*Service.java
+alwaysApply: false
+---
+# Service Layer
+
+## Responsibility
+
+Services contain business logic and orchestration: validate business rules, coordinate repositories and other services, manage transactions. Controllers and repositories do not contain business logic.
+
+## Structure
+
+- One service per aggregate or use-case area (e.g. `ItemService`, `OrderService`).
+- Use `@Service`; inject only repositories and other services via constructor (`@RequiredArgsConstructor` + `final`).
+- Methods represent use cases or clear operations: `findById`, `create`, `update`, `placeOrder`, etc.
+- Prefer interface + impl only when you need multiple implementations or proxying (e.g. different backends).
+
+## Transactions
+
+- Use `@Transactional` on public methods that modify data; use `@Transactional(readOnly = true)` for read-only methods (performance hint).
+- Default rollback on unchecked exceptions; use `rollbackFor` for checked exceptions if you throw them.
+- Keep transaction boundaries at service level, not in controllers or repositories.
+
+```java
+// ✅ GOOD
+@Service
+@RequiredArgsConstructor
+public class ItemService {
+    private final ItemRepository itemRepository;
+
+    @Transactional(readOnly = true)
+    public ItemResponse findById(Long id) {
+        Item item = itemRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Item", id));
+        return toResponse(item);
+    }
+
+    @Transactional
+    public ItemResponse create(CreateItemRequest request) {
+        Item item = new Item(request.getName(), request.getPrice());
+        return toResponse(itemRepository.save(item));
+    }
+}
+```
+
+## Design
+
+- Services work with entities and DTOs; convert at boundaries (controller ↔ service with DTOs, service ↔ repository with entities).
+- Throw domain or app exceptions (e.g. `ResourceNotFoundException`, `ValidationException`); let `@ControllerAdvice` map them to HTTP responses.
+- No HTTP or Servlet types in services (no `HttpServletRequest`, `ResponseEntity`); keep layer portable.
+
+## Don’t
+
+- Put HTTP or request/response handling in services.
+- Annotate repository interfaces with `@Transactional` for normal CRUD; handle transactions in the service that coordinates the operation.

@@ -1,0 +1,50 @@
+---
+globs: **/*Controller.java
+alwaysApply: false
+---
+# Controller Layer
+
+## Responsibility
+
+Controllers handle HTTP only: parse request, validate input, call service, return response. No business logic.
+
+## Structure
+
+- One controller per resource (e.g. `ItemController`, `UserController`).
+- Base path: `@RequestMapping("/api/v1/{resource}")` (versioned).
+- Use `@RestController`; use `@RequiredArgsConstructor` + constructor-injected service(s).
+- Return `ResponseEntity<T>` for explicit status and headers; use `ResponseEntity.ok()`, `.status(CREATED)`, `.noContent()`, etc.
+
+## Request & Response
+
+- **Never expose entities.** Use DTOs: `*Request` for body input, `*Response` or `*Dto` for output.
+- Validate request bodies with `@Valid` (or `@Validated`) and Bean Validation (`@NotNull`, `@Size`, `@Min`, etc.).
+- Path/query params: use `@PathVariable`, `@RequestParam` with sensible defaults; document required vs optional.
+
+```java
+// ✅ GOOD
+@PostMapping
+public ResponseEntity<ItemResponse> create(@Valid @RequestBody CreateItemRequest request) {
+    ItemResponse created = itemService.create(request);
+    return ResponseEntity.status(CREATED).body(created);
+}
+
+@GetMapping("/{id}")
+public ResponseEntity<ItemResponse> getById(@PathVariable Long id) {
+    return ResponseEntity.ok(itemService.findById(id));
+}
+```
+
+## HTTP Semantics
+
+- GET: 200 + body, or 404 (handle in `@ControllerAdvice`).
+- POST: 201 + body + `Location` header when creating a resource.
+- PUT/PATCH: 200 + body, or 404.
+- DELETE: 204 No Content, or 404.
+- Use proper status codes; avoid returning 200 for failures.
+
+## Don’t
+
+- Put business logic in controllers (delegate to service).
+- Catch exceptions to return error JSON here; use `@ControllerAdvice`.
+- Return raw entities or domain types; always map to DTOs.

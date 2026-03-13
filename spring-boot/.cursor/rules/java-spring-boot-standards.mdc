@@ -1,0 +1,77 @@
+---
+alwaysApply: true
+---
+# Java Spring Boot Coding Standards
+
+**Target: Java 21.** Prefer Java 21 language and API features in all new code.
+
+## Java 21 Conventions
+
+- **Records** for DTOs, request/response types, and immutable value objects: `record ItemResponse(Long id, String name) {}`.
+- **Pattern matching**: use `instanceof` with binding (`if (x instanceof Point p) { ... }`) and switch with patterns or guards when it simplifies control flow.
+- **Unnamed variables**: use `_` for unused bindings (e.g. `catch (Exception _)`, lambda params, or pattern variables you don’t need).
+- **`var`**: use where the type is obvious from the right-hand side and readability improves; avoid when the type is non-obvious or helps document the code.
+- **`Optional`**: prefer `optional.orElseThrow()` (no-arg) when you expect a value and want to throw `NoSuchElementException`, or throw a custom exception in a method reference.
+- **Sequenced collections** (Java 21): prefer `list.getFirst()` / `getLast()` and `addFirst()` / `addLast()` on `List` instead of index hacks.
+- **Text blocks**: use `"""..."""` for multi-line string literals (SQL, JSON snippets, messages).
+- **Virtual threads**: consider `ExecutorService` with virtual threads for I/O-bound concurrency where it fits (e.g. parallel calls); Spring Boot 3.2+ supports virtual-thread-based web servers when configured.
+
+## Naming & Structure
+
+- **Packages**: Lowercase, reverse domain (e.g. `com.bridge.code_challenge`). Group by feature or layer: `controller`, `service`, `repository`, `model`, `dto`, `config`, `exception`.
+- **Classes**: PascalCase. Controllers: `*Controller`; services: `*Service`; repositories: `*Repository`; DTOs: `*Request`, `*Response`, `*Dto`; entities: noun singular.
+- **Methods/variables**: camelCase. REST handlers: verb or `get*`, `create*`, `update*`, `delete*`.
+
+## Spring Boot Conventions
+
+- Prefer constructor injection for dependencies (enables `final` and immutability).
+- Use `@RestController` + `@RequestMapping` at class level; `@GetMapping`, `@PostMapping`, etc. on methods.
+- Return `ResponseEntity<T>` (or a wrapper) for REST APIs so status and headers are explicit.
+
+```java
+// ✅ GOOD
+@RestController
+@RequestMapping("/api/v1/items")
+@RequiredArgsConstructor
+public class ItemController {
+    private final ItemService itemService;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ItemResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(itemService.findById(id));
+    }
+}
+```
+
+## Error Handling
+
+- Do not swallow exceptions. Use `@ControllerAdvice` (or `@RestControllerAdvice`) with `@ExceptionHandler` for consistent API error responses.
+- Log with context (e.g. identifier, operation) before rethrowing or mapping to a response.
+
+```java
+// ❌ BAD
+try {
+    return service.find(id);
+} catch (Exception e) {}
+
+// ✅ GOOD
+@ExceptionHandler(ResourceNotFoundException.class)
+public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
+    log.warn("Resource not found: {}", ex.getMessage());
+    return ResponseEntity.status(NOT_FOUND).body(new ErrorResponse(ex.getMessage()));
+}
+```
+
+## General Java
+
+- Prefer `final` for local variables and fields when they are not reassigned.
+- Use meaningful names; avoid single-letter names except for loop indices or lambdas (e.g. `e` for exception). Use `_` for intentionally unused variables (Java 21).
+- Keep methods short; extract private methods or separate services when logic grows.
+
+```java
+// ✅ Java 21: records for DTOs; pattern matching; orElseThrow()
+public record ItemResponse(Long id, String name) {}
+
+Item item = itemRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+if (item instanceof ItemWithDiscount d) { return d.discountedPrice(); }
+```
