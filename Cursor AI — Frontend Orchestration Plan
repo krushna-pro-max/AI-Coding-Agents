@@ -1,0 +1,75 @@
+# 🧠 Cursor AI — Frontend Orchestration Plan (Mermaid Diagrams)
+
+> Multi-agent orchestration strategy for robust frontend development using Cursor AI.
+
+---
+
+## 1. Master Orchestration Flow
+
+End-to-end pipeline from feature request to merge-ready PR.
+
+<img width="777" height="1397" alt="Image" src="https://github.com/user-attachments/assets/b93e1ef0-9810-4c5c-a12f-95a46c36c8e5" />
+---
+
+## 2. Inter-Agent Dependency Map
+
+Artifact and data flow between all 10 agents across three layers.
+
+<img width="1584" height="246" alt="Image" src="https://github.com/user-attachments/assets/ee26f6fd-1b41-404f-ac97-af2d79e947af" />
+
+---
+
+## 3. Agent Activation Sequence Diagram
+
+Message passing and handoffs across all agents within a single feature cycle.
+
+<img width="1584" height="794" alt="Image" src="https://github.com/user-attachments/assets/ddc42b5a-bd70-4504-a3bf-532c93a263e5" />
+
+---
+
+## 4. Continuous Sprint Improvement Loop
+
+Feedback-driven sprint cadence with quality gates and monitoring.
+
+<img width="1084" height="1490" alt="Image" src="https://github.com/user-attachments/assets/7287cb3c-4f0a-4766-80ac-39cae2e256b3" />
+
+---
+
+## 🤖 Agent Reference Table
+
+| Agent | Layer | Primary Output | Cursor Prompt Prefix |
+|---|---|---|---|
+| Orchestrator | Planning | Task breakdown, delegation | `@orchestrator` |
+| Design | Design & Structure | Styled JSX, token mapping | `@design` |
+| Architecture | Design & Structure | Folder scaffold, routes | `@arch` |
+| Component | Implementation | Typed React components | `@components` |
+| State | Implementation | Zustand stores, hooks | `@state` |
+| API | Implementation | TanStack Query hooks | `@api` |
+| Test | Quality | Vitest/RTL/Playwright tests | `@tests` |
+| A11y | Quality | WCAG 2.1 AA audit + fixes | `@a11y` |
+| Performance | Quality | Bundle analysis, vitals | `@perf` |
+| Review | Quality | PR description, gate pass | `@review` |
+
+---
+
+## 🗂️ `.cursor/rules` Config
+
+```markdown
+## Tech Stack
+- Framework: Next.js 14 (App Router)
+- Language: TypeScript (strict mode)
+- Styling: Tailwind CSS + shadcn/ui
+- State: Zustand
+- Data Fetching: TanStack Query v5
+- Testing: Vitest + RTL + Playwright
+
+## Quality Gates
+- No `any` TypeScript types
+- No inline styles
+- All components must be tested
+- Review Agent sign-off required before merge
+```
+
+---
+
+*Version 1.0 — Cursor AI Multi-Agent Frontend Orchestration*
